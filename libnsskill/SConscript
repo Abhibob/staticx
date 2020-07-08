@@ -1,0 +1,10 @@
+Import('env')
+
+libnsskill = env.SharedLibrary(
+    target = 'nsskill',
+    source = [
+        'nsskill.c',
+    ],
+)
+
+Return('libnsskill')
