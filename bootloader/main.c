@@ -303,6 +303,30 @@ setup_environment(void)
 }
 
 /**
+ * Set up environment to LD_PRELOAD libnsskill.so into the child process.
+ */
+static void
+setup_nsskill(void)
+{
+    char *path = path_join(m_bundle_dir, "libnsskill.so");
+
+    if (!file_exists(path)) {
+        // User program not GLIBC, doesn't require nsskill
+        goto out;
+    }
+
+    char *envstr;
+    if (asprintf(&envstr, "LD_PRELOAD=%s", path) < 0)
+        error(2, 0, "Failed to allocate env var string");
+
+    putenv(envstr);
+    envstr = NULL;      // Now part of environment
+
+out:
+    free(path);
+}
+
+/**
  * Run the user application in a child process.
  *
  * Returns the child wait status
@@ -329,7 +353,11 @@ run_app(int argc, char **argv, char *prog_path)
 
     if (child_pid == 0) {
         /*** Child ***/
+        // TODO: If we can avoid doing anything here but call exec,
+        // we could use the less-expensive vfork()
         debug_printf("Child process started; ready to call execv()\n");
+
+        setup_nsskill();
 
         execv(new_argv[0], new_argv);
 

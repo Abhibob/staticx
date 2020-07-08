@@ -5,6 +5,13 @@ libnsskill = env.SharedLibrary(
     source = [
         'nsskill.c',
     ],
+
+    # These aren't needed for nsskill itself, but for the glibc hook
+    # to discover their paths.
+    LIBS = [
+        'nss_files',
+        'nss_dns',
+    ],
 )
 
 Return('libnsskill')
